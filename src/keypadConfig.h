@@ -3,15 +3,15 @@
 
 #include <Arduino.h>
 
-#define C1 3      // Col 1
-#define C2 4      // Col 2
-#define C3 5      // Col 3
-#define C4 6      // Col 4
+#define C1 4      // Col 1
+#define C2 5      // Col 2
+#define C3 6      // Col 3
+#define C4 7      // Col 4
 
-#define R1 3      // Row 1
-#define R2 4      // Row 2
-#define R3 5      // Row 3
-#define R4 6      // Row 4
+#define R1 8      // Row 1
+#define R2 9      // Row 2
+#define R3 10     // Row 3
+#define R4 11     // Row 4
 
 const byte ROWS = 4;    //four rows
 const byte COLS = 4;    //four columns

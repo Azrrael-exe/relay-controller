@@ -4,7 +4,7 @@
 
 #include <relay.h>
 
-#define N 5
+#define N 9
 
 #include <Wire.h>
 #include <LCD.h>
@@ -12,7 +12,7 @@
 #include <lcdConfig.h>
 
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
-LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
+LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
 
 Relay relays[N];
 
@@ -121,5 +121,5 @@ void loop() {
     clearQueue();
     showStatus(lcd, relays);
   }
-  
+
 }

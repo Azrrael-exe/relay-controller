@@ -66,7 +66,10 @@ bool Relay::getRelay(Stream& uart, uint8_t (&arr)[8]){
     uart.read();
   }
 
-  uint8_t frame[8] = {NODE, 0x01, 0x00, index, 0x00, 0x01, 0x00, 0x00};
+  // inp 01 03 00 01 00 01 D5 CA
+  // res 01 03 02 00 01 79 84
+
+  uint8_t frame[8] = {NODE, 0x03, 0x00, index, 0x00, 0x01, 0x00, 0x00};
   uint16_t crc = 0xFFFF;
   for (int i = 0; i < 6; i++) {
     crc ^= (uint16_t)frame[i];
@@ -86,10 +89,10 @@ bool Relay::getRelay(Stream& uart, uint8_t (&arr)[8]){
     uart.write(frame[i]);
   }
   delay(100);
-  for(int i = 0; i<6; i++){
+  for(int i = 0; i<7; i++){
     arr[i] = uart.read();
   }
-  state = bool(arr[3]);
+  state = bool(arr[4]);
   return state;
 }
 
@@ -100,7 +103,14 @@ bool Relay::swapRelay(Stream& uart){
   }
 
   state = !state;
-  uint8_t frame[8] = {NODE, 0x05, 0x00, index, state, 0x00, 0x00, 0x00};
+  uint8_t val;
+  if(state){
+    val = 0x01;
+  }
+  else {
+    val = 0x02;
+  }
+  uint8_t frame[8] = {NODE, 0x06, 0x00, index, val, 0x00, 0x00, 0x00};
   uint16_t crc = 0xFFFF;
   for (int i = 0; i < 6; i++) {
     crc ^= (uint16_t)frame[i];
@@ -137,9 +147,24 @@ bool turnOnAll(Stream& uart){
     uart.read();
   }
 
-  uint8_t frame[8] = {0x01, 0x05, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00};
+  uint8_t frame[25] = {
+    0x01, 0x10, // Node - CMD
+    0x00, 0x01, // Init address
+    0x00, 0x08, // end address
+    0x10,       // Length
+    0x01, 0x00, // payload
+    0x01, 0x00,
+    0x01, 0x00,
+    0x01, 0x00,
+    0x01, 0x00,
+    0x01, 0x00,
+    0x01, 0x00,
+    0x01, 0x00,
+    0x00, 0x00  // CheckSum
+  };
+
   uint16_t crc = 0xFFFF;
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 23; i++) {
     crc ^= (uint16_t)frame[i];
     for (int i = 8; i != 0; i--) {    // Loop over each bit
       if ((crc & 0x0001) != 0) {      // If the LSB is set
@@ -152,9 +177,9 @@ bool turnOnAll(Stream& uart){
    }
 
    // Note, this number has low and high bytes swapped, so use it accordingly (or swap bytes)
-  frame[6] = crc & 0x00FF;
-  frame[7] = crc >> 8;
-  for(int i=0; i<8; i++){
+  frame[23] = crc & 0x00FF;
+  frame[24] = crc >> 8;
+  for(int i=0; i<25; i++){
     uart.write(frame[i]);
   }
   return true;
@@ -169,9 +194,24 @@ bool turnOffAll(Stream& uart){
     uart.read();
   }
 
-  uint8_t frame[8] = {0x01, 0x05, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00};
+  uint8_t frame[25] = {
+    0x01, 0x10, // Node - CMD
+    0x00, 0x01, // Init address
+    0x00, 0x08, // end address
+    0x10,       // Length
+    0x02, 0x00, // payload
+    0x02, 0x00,
+    0x02, 0x00,
+    0x02, 0x00,
+    0x02, 0x00,
+    0x02, 0x00,
+    0x02, 0x00,
+    0x02, 0x00,
+    0x00, 0x00  // CheckSum
+  };
+
   uint16_t crc = 0xFFFF;
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 23; i++) {
     crc ^= (uint16_t)frame[i];
     for (int i = 8; i != 0; i--) {    // Loop over each bit
       if ((crc & 0x0001) != 0) {      // If the LSB is set
@@ -184,9 +224,9 @@ bool turnOffAll(Stream& uart){
    }
 
    // Note, this number has low and high bytes swapped, so use it accordingly (or swap bytes)
-  frame[6] = crc & 0x00FF;
-  frame[7] = crc >> 8;
-  for(int i=0; i<8; i++){
+  frame[23] = crc & 0x00FF;
+  frame[24] = crc >> 8;
+  for(int i=0; i<25; i++){
     uart.write(frame[i]);
   }
   return true;

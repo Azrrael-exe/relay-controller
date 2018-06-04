@@ -1,10 +1,10 @@
 #include <Arduino.h>
 #include <Keypad.h>
-#include <KeypadConfig.h>
-
-#include <relay.h>
+#include <keypadConfig.h>
 
 #define N 9
+
+#include <relay.h>
 
 #include <Wire.h>
 #include <LCD.h>
@@ -68,19 +68,13 @@ void loop() {
   }
 
   if(key == 'A' && status == WRITING){
-    turnOnAll(Serial);
-    for(int i=0;i<N; i++){
-      relays[i].setLocalStatus(true);
-    }
+    turnOnAll(Serial, relays);
     clearQueue();
     status = SEND;
   }
 
   if(key == 'B' && status == WRITING){
-    turnOffAll(Serial);
-    for(int i=0;i<N; i++){
-      relays[i].setLocalStatus(false);
-    }
+    turnOffAll(Serial, relays);
     clearQueue();
     status = SEND;
   }

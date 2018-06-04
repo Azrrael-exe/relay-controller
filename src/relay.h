@@ -37,7 +37,14 @@ bool Relay::setRelay(Stream& uart, bool s){
     uart.read();
   }
 
-  uint8_t frame[8] = {NODE, 0x05, 0x00, index, s, 0x00, 0x00, 0x00};
+  uint8_t val;
+  if(s){
+    val = 0x01;
+  }
+  else {
+    val = 0x02;
+  }
+  uint8_t frame[8] = {NODE, 0x06, 0x00, index, val, 0x00, 0x00, 0x00};
   uint16_t crc = 0xFFFF;
   for (int i = 0; i < 6; i++) {
     crc ^= (uint16_t)frame[i];
@@ -142,95 +149,18 @@ bool Relay::setLocalStatus(bool s){
   return state;
 }
 
-bool turnOnAll(Stream& uart){
-  while (uart.available()) {
-    uart.read();
+void turnOnAll(Stream& uart, Relay (&relays)[N]){
+  for(int i=1; i<N; i++){
+    relays[i].setRelay(uart, true);
+    delay(100);
   }
-
-  uint8_t frame[25] = {
-    0x01, 0x10, // Node - CMD
-    0x00, 0x01, // Init address
-    0x00, 0x08, // end address
-    0x10,       // Length
-    0x01, 0x00, // payload
-    0x01, 0x00,
-    0x01, 0x00,
-    0x01, 0x00,
-    0x01, 0x00,
-    0x01, 0x00,
-    0x01, 0x00,
-    0x01, 0x00,
-    0x00, 0x00  // CheckSum
-  };
-
-  uint16_t crc = 0xFFFF;
-  for (int i = 0; i < 23; i++) {
-    crc ^= (uint16_t)frame[i];
-    for (int i = 8; i != 0; i--) {    // Loop over each bit
-      if ((crc & 0x0001) != 0) {      // If the LSB is set
-        crc >>= 1;                    // Shift right and XOR 0xA001
-        crc ^= 0xA001;
-      }
-      else                            // Else LSB is not set
-       crc >>= 1;                    // Just shift right
-     }
-   }
-
-   // Note, this number has low and high bytes swapped, so use it accordingly (or swap bytes)
-  frame[23] = crc & 0x00FF;
-  frame[24] = crc >> 8;
-  for(int i=0; i<25; i++){
-    uart.write(frame[i]);
-  }
-  return true;
 }
 
-bool turnOffAll(Stream& uart){
-  while (uart.available()) {
-    uart.read();
+void turnOffAll(Stream& uart, Relay (&relays)[N]){
+  for(int i=1; i<N; i++){
+    relays[i].setRelay(uart, false);
+    delay(100);
   }
-
-  while (uart.available()) {
-    uart.read();
-  }
-
-  uint8_t frame[25] = {
-    0x01, 0x10, // Node - CMD
-    0x00, 0x01, // Init address
-    0x00, 0x08, // end address
-    0x10,       // Length
-    0x02, 0x00, // payload
-    0x02, 0x00,
-    0x02, 0x00,
-    0x02, 0x00,
-    0x02, 0x00,
-    0x02, 0x00,
-    0x02, 0x00,
-    0x02, 0x00,
-    0x00, 0x00  // CheckSum
-  };
-
-  uint16_t crc = 0xFFFF;
-  for (int i = 0; i < 23; i++) {
-    crc ^= (uint16_t)frame[i];
-    for (int i = 8; i != 0; i--) {    // Loop over each bit
-      if ((crc & 0x0001) != 0) {      // If the LSB is set
-        crc >>= 1;                    // Shift right and XOR 0xA001
-        crc ^= 0xA001;
-      }
-      else                            // Else LSB is not set
-       crc >>= 1;                    // Just shift right
-     }
-   }
-
-   // Note, this number has low and high bytes swapped, so use it accordingly (or swap bytes)
-  frame[23] = crc & 0x00FF;
-  frame[24] = crc >> 8;
-  for(int i=0; i<25; i++){
-    uart.write(frame[i]);
-  }
-  return true;
-
 }
 
 #endif
